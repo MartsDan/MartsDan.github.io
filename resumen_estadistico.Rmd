@@ -1,0 +1,71 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(WDI) # Para bajar datos del DataBank
+library(wbstats) # Para bajar datos del DataBank
+library(DT) # Para hacer tablas bonitas
+library(tidyverse) # Para manipular bases de datos
+library(plotly) # Para hacer gráficas interactivas
+options(scipen=999) # Para desactivar la notación científica
+```
+
+# Resumen estadístico de "GDP per capita (constant 2010 US\$"
+
+Descripcion: El GDP por sus siglas en ingles Gross Domestic Product es un inficador economico que en Mexico conocemos como PIB o por sus siglas en español es Porducto Interno Bruto el cual es un indicador que mide la produccion de las naciones a la mitad del año, este indicador puede modificarse por cualquier hecho que afecte o beneficie la economia por lo que resulta interesante analizar como ha ido evolucionando este indicador.
+
+El PIB es la suma del valor agregado bruto de todos los productores residentes en la economía más los impuestos sobre los productos y menos los subsidios no incluidos en el valor de los productos. Se calcula sin hacer deducciones por depreciación de bienes fabricados o por agotamiento y degradación de los recursos naturales. Los datos están expresados ​​en dólares estadounidenses constantes de 2010.
+
+### Descargando los datos
+
+Si conocemos el código de nuestra base de datos, podremos importar los datos desde el DataBank del WorldBank mediante la función `wb_data`:
+
+```{r}
+datos <- wb_data("NY.GDP.PCAP.KD", start_date = 1960, end_date = 2021)
+```
+
+### Obteniendo un resumen estadístico
+
+```{r}
+summary(datos)
+```
+
+### Descripción del Resumen Estadistico
+
+El valor minimo de mi variable es 144.2 MDD
+
+El valor maximo de mi variable es 1,315.5 MDD
+
+La mediana de mi variale es 11,673.6 MDD
+
+El promedio de mi variable es 3,714.6 MDD
+
+El numero de valores faltantes es: 3,642.0
+
+La ultima actualizacion de mi variable fue el 15 de Febrero del 2022
+
+### Filtrando los datos de México
+
+```{r}
+pais <- filter(datos, country == "Mexico")
+summary(pais)
+```
+
+El valor minimo de mi variable es 3,742 MDD
+
+El valor maximo de mi variable es 9,946 MDD
+
+La mediana de mi variale es 7,397 MDD
+
+El promedio de mi variable es 7,677 MDD
+
+El numero de valores faltantes es: 0
+
+La ultima actualizacion de mi variable fue el 15 de Febrero del 2022
+
+### Grafica de mi variable y pais contra el tiempo
+
+```{r}
+plot(pais$date, pais$NY.GDP.PCAP.KD)
+```

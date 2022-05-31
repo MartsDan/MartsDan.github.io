@@ -1,0 +1,136 @@
+---
+title: "Trabajo Final"
+author: "Daniel Martinez"
+date: '2022-05-30'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(WDI) # Para bajar datos del DataBank
+library(wbstats) # Para bajar datos del DataBank
+library(reactable) # Para hacer tablas bonitas
+library(tidyverse) # Para manipular bases de datos
+library(plotly) # Para hacer gráficas interactivas
+library(moments) # Momentos estadísticos
+options(scipen=999) # Para desactivar la notación científica
+```
+
+# RESUMEN ESTADISTICO DEL PIB DE CHINA VS EL PIB DE RUSIA 🇨🇳 🇷🇺
+
+La economía de estos paises en los ultimos tiempos se han llevado de la mano, no solo por la cercanía si no por el inigualable poder que ambos han ganado en los ultimos años, lo que los convierte en la principal preocupacion de las antiguas potencias tales como lo serian Estados Unidos o Reino Unido. Podemos hacer hipotesis de que la economia de una es ependiente de todo, aunque casi todo en la economia tenga efectos en la misma, podemos hacer la hipotesis de que estos paises al ser aliados su economia si depende aunque sea un poco la una de la otra. 🙂💪🏻
+
+<center>
+
+[![Rusia y China ¿Amigos o enemigos?](rusia%20vs%20CHina.jpg)](https://www.emol.com/noticias/Internacional/2022/02/23/1047544/rusia-china-ucrania-eeuu-otan.html)
+
+## *¿Como podemos hacer esta comparativa?* 🤔
+
+El banco mundial presenta informacion del GDP por sus siglas en Ingles "Gross Domestic Product" que en español conocemos como el PIB por sus siglas en español "Producto Interno Bruto"
+
+### ¿Pero que es el PIB? 🧑‍💻 📈
+
+"El PIB a precios de comprador es la suma del valor agregado bruto de todos los productores residentes en la economía más los impuestos sobre los productos y menos los subsidios no incluidos en el valor de los productos. Se calcula sin hacer deducciones por depreciación de bienes fabricados o por agotamiento y degradación de los recursos naturales. Los datos están a precios constantes de 2015, expresados ​​en dólares estadounidenses. Las cifras en dólares para el PIB se convierten de las monedas nacionales utilizando los tipos de cambio oficiales de 2015. Para algunos países donde la tasa de cambio oficial no refleja la tasa efectivamente aplicada a las transacciones de divisas reales, se utiliza un factor de conversión alternativo."
+
+[Banco Mundial](https://databank.bancomundial.org/metadataglossary/world-development-indicators/series/NY.GDP.MKTP.KD "Banco Mundial") 💹
+
+### Hipótesis: 🤔
+
+H0: el PIB de China ***SÍ*** depende del PIB de Rusia
+
+H1: el PIB de China ***NO*** depende del PIB de Rusia
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Descargando los datos
+
+# Si conocemos el código de nuestra base de datos, podremos importar los datos desde el DataBank del WorldBank mediante la función wb_data:
+
+datos <- wb_data("NY.GDP.MKTP.KD", start_date = 1989, end_date = 2021)
+
+# Filtrando datos de China y Rusia
+
+china <- filter(datos, country == "China", NY.GDP.MKTP.KD != "NA")
+
+rusia <- filter(datos, country == "Russian Federation", NY.GDP.MKTP.KD != "NA")
+
+# Creamos una nueva tabla con el PIB_CHN y el PIB_RUS
+
+gdp <- data.frame(Fecha = china$date, PIB_CHN = china$NY.GDP.MKTP.KD, PIB_RUS = rusia$NY.GDP.MKTP.KD)
+```
+
+### Análisis bivariado del PIB de China y el PIB de Rusia 📈 📊
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+covarianza <- cov(gdp$PIB_CHN, gdp$PIB_RUS)
+correlacion <- cor(gdp$PIB_CHN, gdp$PIB_RUS)
+
+determinacion <- correlacion*correlacion
+
+paste0("La covarianza del PIB de China y el PIB de Rusia es igual a: ", covarianza)
+
+# Redondeando cifras
+
+covarianza <- round(covarianza, 2)
+correlacion <- round(correlacion, 2)
+determinacion <- round(determinacion, 2)
+
+# Imprimiendo texto
+
+paste0("El coeficiente de correlación del PIB de China y el PIB de Rusia es igual a: ", correlacion)
+paste0("El coeficiente de determinación del PIB de China y el PIB de Rusia es igual a: ", determinacion)
+
+```
+
+### Gráfica de dispersión del PIB de EUA y del PIB de México 📈
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grafica_interactiva <- ggplot(gdp) + geom_point(aes(PIB_CHN, PIB_RUS), color = "orange")
+ggplotly(grafica_interactiva)
+```
+
+</center>
+
+### Modelo clásico de regresión lineal (MCRL) 📈
+
+Planteando mi ecuación:$$
+PIBMX_t = B_0 + B_1(PIBEUA_t)+e_t
+$$Resolviendo con R:
+
+```{r}
+lm(PIB_CHN ~ PIB_RUS, data = gdp)
+
+```
+
+La ordenada al origen es igual a ($B_0$): -8941679846939.09
+
+\
+La pendiente óptima es igual a ($B_1$): 13.52
+
+### Obteniendo el resumen estadístico de mi modelo lineal 📈
+
+```{r}
+modelo <- lm(PIB_CHN ~ PIB_RUS, data = gdp)
+summary(modelo)
+```
+
+Notas:
+
+El intercepto y el PIB de Rusia son estadisticamente significativas
+
+El R cuadrado es igual alcoeficiente de determinación y es mayor al 67%. Por lo tanto nuestro modelo explica la mayor parte del fenómeno.
+
+### Graficando mi MCRL
+
+```{r}
+meli <- ggplot(gdp, aes(PIB_RUS, PIB_CHN)) + geom_point() + geom_smooth(method = "lm")
+ggplotly(meli)
+```
+
+Existe evidencia estadística de asociación lineal entre el PIB de China y el PIB de Rusia, por lo que ***caemos en zona de rechazo de la hipótesis nula (H1)*** y por tanto podemos concluir que el PIB de China no depende del PIB de Rusia.
+
+Por lo tanto una vez realizado el analisis podemos decirque si bien son buenos socios militarmente hablando, tal vez la economia no se relaciona tanto y sus niveles de produccion no dependen tanto la una de la otra. ❤️
+
+
+
+
